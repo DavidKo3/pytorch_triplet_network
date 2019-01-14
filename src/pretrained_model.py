@@ -38,17 +38,17 @@ import hard_triplet_loss as hd_t_loss
 
 
 default_dir="/mnt/sdb2/repo/daewon/cocotinydataset/coco-animals"
-
+trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network"
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_dir', default=os.path.join(default_dir, 'train'))
 parser.add_argument('--val_dir', default=os.path.join(default_dir, 'val'))
 parser.add_argument('--batch_size', default=32, type=int)
 parser.add_argument('--num_workers', default=4, type=int)
 parser.add_argument('--num_epochs1', default=10, type=int)
-parser.add_argument('--num_epochs2', default=500, type=int)
+parser.add_argument('--num_epochs2', default=10000, type=int)
 parser.add_argument('--use_gpu', default='use_gpu', action='store_true')
 parser.add_argument('--online_hard_triplet_loss', default=True)
-
+parser.add_argument('--save_dir_trained_model', default=os.path.join(trained_dir, 'triplet_network.pt'))
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
@@ -117,11 +117,12 @@ def main(args):
     # train and validation sets after each epoch.
     for epoch in range(args.num_epochs2):
         print('Starting epoch %d / %d' % (epoch +1, args.num_epochs2))
-        run_epoch(model, loss_fn, train_loader, optimizer, dtype)
+        run_epoch(model, loss_fn, train_loader, optimizer, dtype, epoch)
 
 
         if not args.online_hard_triplet_loss :
-            train_acc = check_accuracy(model, train_loader, dtype)
+            # train_acc = check_accuracy(model, train_loader, dtype)
+            train_acc = check_accuracy(model, train_loader, dtype, epoch)
             val_acc = check_accuracy(model, val_loader, dtype)
             print("train_Acc", train_acc)
             print("val_acc", val_acc)
@@ -131,7 +132,7 @@ def main(args):
 
 
 
-def run_epoch(model, loss_fn, loader, optimizer, dtype):
+def run_epoch(model, loss_fn, loader, optimizer, dtype, epoch):
     """
     Train the model for one epoch.
     """
@@ -161,6 +162,12 @@ def run_epoch(model, loss_fn, loader, optimizer, dtype):
 
     size_batch_per_epoch = (len(loader)/args.batch_size)
     print("mean_loss : ", mean_loss.item()/size_batch_per_epoch)
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss,
+    }, args.save_dir_trained_model)
 
 
 
