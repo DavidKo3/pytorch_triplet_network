@@ -34,12 +34,13 @@ import torchvision
 import torchvision.transforms as T
 from torchvision.models.resnet import resnet18
 from torchvision.datasets import ImageFolder
+import hard_triplet_loss as hd_t_loss
 
 
 default_dir="/mnt/sdb2/repo/daewon/cocotinydataset/coco-animals"
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--train_dir', default=os.path.join(default_dir,'train'))
+parser.add_argument('--train_dir', default=os.path.join(default_dir, 'train'))
 parser.add_argument('--val_dir', default=os.path.join(default_dir, 'val'))
 parser.add_argument('--batch_size', default=32, type=int)
 parser.add_argument('--num_workers', default=4, type=int)
@@ -52,7 +53,7 @@ IMAGENET_STD = [0.229, 0.224, 0.225]
 
 
 def main(args):
-    dtype=torch.FloatTensor
+    dtype = torch.FloatTensor
     if args.use_gpu:
         print("~~~use_gpu~~~")
         dtype = torch.cuda.FloatTensor
@@ -96,8 +97,8 @@ def main(args):
 
     # Cast the model to the correct datatype, and create a loss function fro training the model
     model.type(dtype)
-    loss_fn = nn.CrossEntropyLoss()
-
+    # loss_fn = nn.CrossEntropyLoss()
+    loss_fn = hd_t_loss.HardTripletLoss()
     # First we want to train only the reinitialized last layer for a few epochs.
     # During this phase we do not need to compute gradients with respect to the
     # other weights of the model, so we set the requires_grad flag to False for
@@ -151,12 +152,6 @@ def run_epoch(model, loss_fn, loader, optimizer, dtype):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-
-
-
-
-
-
 
 
 
