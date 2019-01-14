@@ -24,6 +24,7 @@ coco-animals/
     zebra/
 """
 import argparse
+import os
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -35,10 +36,11 @@ from torchvision.models.resnet import resnet18
 from torchvision.datasets import ImageFolder
 
 
+default_dir="/mnt/sdb2/repo/daewon/cocotinydataset/coco-animals"
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--train_dir', default='coco-animals/train')
-parser.add_argument('--val_dir', default='coco-animals/val')
+parser.add_argument('--train_dir', default=os.path.join(default_dir,'train'))
+parser.add_argument('--val_dir', default=os.path.join(default_dir, 'val'))
 parser.add_argument('--batch_size', default=32, type=int)
 parser.add_argument('--num_workers', default=4, type=int)
 parser.add_argument('--num_epochs1', default=10, type=int)
