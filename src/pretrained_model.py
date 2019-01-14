@@ -45,8 +45,9 @@ parser.add_argument('--val_dir', default=os.path.join(default_dir, 'val'))
 parser.add_argument('--batch_size', default=32, type=int)
 parser.add_argument('--num_workers', default=4, type=int)
 parser.add_argument('--num_epochs1', default=10, type=int)
-parser.add_argument('--num_epochs2', default=10, type=int)
+parser.add_argument('--num_epochs2', default=500, type=int)
 parser.add_argument('--use_gpu', default='use_gpu', action='store_true')
+parser.add_argument('--online_hard_triplet_loss', default=True)
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
@@ -118,12 +119,16 @@ def main(args):
         print('Starting epoch %d / %d' % (epoch +1, args.num_epochs2))
         run_epoch(model, loss_fn, train_loader, optimizer, dtype)
 
-        train_acc = check_accuracy(model, train_loader, dtype)
-        val_acc = check_accuracy(model, val_loader, dtype)
 
-        print("train_Acc" , train_acc)
-        print("val_acc", val_acc)
-        print("\n")
+        if not args.online_hard_triplet_loss :
+            train_acc = check_accuracy(model, train_loader, dtype)
+            val_acc = check_accuracy(model, val_loader, dtype)
+            print("train_Acc", train_acc)
+            print("val_acc", val_acc)
+            print("\n")
+
+
+
 
 
 def run_epoch(model, loss_fn, loader, optimizer, dtype):
@@ -132,6 +137,7 @@ def run_epoch(model, loss_fn, loader, optimizer, dtype):
     """
     # Set the model to training mode
     model.train()
+    mean_loss=0
     for x, y in loader:
         # The Dataloader produces Torch Tensors, so we need to cast them to the
         # correct datatype and wrap them in Variables.
@@ -147,13 +153,14 @@ def run_epoch(model, loss_fn, loader, optimizer, dtype):
         # Run the model forward to compute scores and loss.
         scores = model(x_var)
         loss = loss_fn(scores, y_var)
-
+        mean_loss += loss
         # Run the model backwrad and take a step using the optimizer.
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-
+    size_batch_per_epoch = (len(loader)/args.batch_size)
+    print("mean_loss : ", mean_loss.item()/size_batch_per_epoch)
 
 
 
