@@ -32,7 +32,7 @@ from torch.utils.data import DataLoader
 
 import torchvision
 import torchvision.transforms as T
-from torchvision.models.resnet import resnet18
+from torchvision.models.resnet import resnet18, resnet50
 from torchvision.datasets import ImageFolder
 import hard_triplet_loss as hd_t_loss
 
@@ -94,7 +94,7 @@ def main(args):
 
     # First load the pretrained ResNet-18 model; this will download the model
     # weights from the web the first time you run it
-    model = resnet18(pretrained=True)
+    model = resnet50(pretrained=True)
 
 
     # Reinitialize the last layer of the model.
