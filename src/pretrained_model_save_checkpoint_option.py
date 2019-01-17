@@ -110,7 +110,10 @@ def main(args):
     # adding one dimension to a tensor in pytorch
     data = val_dset[0][0].unsqueeze(0) # [3, 224, 224] -> [1, 3, 224, 224]
     embedding = model(data)
-    print(embedding)
+    print(embedding.shape)
+    emb = model.avgpool(data)
+    emb = emb.view(emb.size(0), -1)
+    print(emb.shape)
 
 
 
