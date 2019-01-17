@@ -37,18 +37,25 @@ from torchvision.datasets import ImageFolder
 import hard_triplet_loss as hd_t_loss
 
 
-default_dir="/mnt/sdb2/repo/daewon/cocotinydataset/coco-animals"
-trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network"
+# default_dir="/mnt/sdb2/repo/daewon/cocotinydataset/coco-animals"
+default_dir="/mnt/sdb2/repo/daewon/deep_fashion_class_20_100_train_val"
+# trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network"
+trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network/19_01_17/"
+name_pretrained_model = "_triplet_network.pt"
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_dir', default=os.path.join(default_dir, 'train'))
 parser.add_argument('--val_dir', default=os.path.join(default_dir, 'val'))
 parser.add_argument('--batch_size', default=32, type=int)
 parser.add_argument('--num_workers', default=4, type=int)
 parser.add_argument('--num_epochs1', default=10, type=int)
-parser.add_argument('--num_epochs2', default=10000, type=int)
+parser.add_argument('--num_epochs2', default=20000, type=int)
 parser.add_argument('--use_gpu', default='use_gpu', action='store_true')
 parser.add_argument('--online_hard_triplet_loss', default=True)
-parser.add_argument('--save_dir_trained_model', default=os.path.join(trained_dir, 'triplet_network.pt'))
+parser.add_argument('--save_dir_trained_model', default=trained_dir)
+parser.add_argument('--num_per_epoch' , default=400)
+# parser.add_argument('--save_dir_trained_model', default=os.path.join(trained_dir, 'triplet_network.pt'))
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
@@ -162,12 +169,14 @@ def run_epoch(model, loss_fn, loader, optimizer, dtype, epoch):
 
     size_batch_per_epoch = (len(loader)/args.batch_size)
     print("mean_loss : ", mean_loss.item()/size_batch_per_epoch)
-    torch.save({
-        'epoch': epoch,
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'loss': loss,
-    }, args.save_dir_trained_model)
+
+    if epoch % args.num_per_epoch == 0:
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'loss': loss,
+        }, args.save_dir_trained_model+str(epoch)+name_pretrained_model)
 
 
 
