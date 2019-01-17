@@ -90,7 +90,8 @@ def main(args):
     # Cast the model to the correct datatype, and create a loss function fro training the model
     model.type(dtype)
 
-    check_point = torch.load(args.save_dir_trained_model + "1200" + name_pretrained_model)
+    check_point = torch.load(args.save_dir_trained_model + "0" + name_pretrained_model)
+    # check_point = torch.load(args.save_dir_trained_model + "1200" + name_pretrained_model)
     args.num_epoch1 = check_point['epoch']
 
     model.load_state_dict(check_point["model_state_dict"])
@@ -105,8 +106,10 @@ def main(args):
 
 
 
-
-    embedding = model(val_dset[0][0])
+    print(val_dset[0][0].unsqueeze(0).size())
+    # adding one dimension to a tensor in pytorch
+    data = val_dset[0][0].unsqueeze(0) # [3, 224, 224] -> [1, 3, 224, 224]
+    embedding = model(data)
     print(embedding)
 
 
