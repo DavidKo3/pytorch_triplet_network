@@ -106,7 +106,7 @@ def main(args):
     # Cast the model to the correct datatype, and create a loss function fro training the model
     model.type(dtype)
     # loss_fn = nn.CrossEntropyLoss()
-    loss_fn = hd_t_loss.HardTripletLoss()
+    loss_fn = hd_t_loss.HardTripletLoss(margin=0.5, hardest=True, squared=True)
     # First we want to train only the reinitialized last layer for a few epochs.
     # During this phase we do not need to compute gradients with respect to the
     # other weights of the model, so we set the requires_grad flag to False for
