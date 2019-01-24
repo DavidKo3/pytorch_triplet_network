@@ -40,7 +40,7 @@ import hard_triplet_loss as hd_t_loss
 # default_dir="/mnt/sdb2/repo/daewon/cocotinydataset/coco-animals"
 default_dir="/mnt/sdb2/repo/daewon/deep_fashion_class_20_100_train_val"
 # trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network"
-trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network/19_01_17/"
+trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network/19_01_23/"
 name_pretrained_model = "_triplet_network.pt"
 
 

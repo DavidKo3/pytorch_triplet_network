@@ -67,7 +67,7 @@ from PIL import Image
 # default_dir="/mnt/sdb2/repo/daewon/cocotinydataset/coco-animals"
 default_dir="/mnt/sdb2/repo/daewon/deep_fashion_class_20_100_train_val"
 # trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network"
-trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network/19_01_17/"
+trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network/19_01_23/"
 name_pretrained_model = "_triplet_network.pt"
 
 
@@ -216,7 +216,7 @@ def main(args):
     # Cast the model to the correct datatype, and create a loss function fro training the model
     model.type(dtype)
 
-    check_point = torch.load(args.save_dir_trained_model + "0" + name_pretrained_model)
+    check_point = torch.load(args.save_dir_trained_model + "19600" + name_pretrained_model)
     # check_point = torch.load(args.save_dir_trained_model + "1200" + name_pretrained_model)
     args.num_epoch1 = check_point['epoch']
 
