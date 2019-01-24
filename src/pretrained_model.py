@@ -40,17 +40,17 @@ import hard_triplet_loss as hd_t_loss
 # default_dir="/mnt/sdb2/repo/daewon/cocotinydataset/coco-animals"
 default_dir="/mnt/sdb2/repo/daewon/deep_fashion_class_20_100_train_val"
 # trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network"
-trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network/19_01_23/"
+trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network/19_01_24/"
 name_pretrained_model = "_triplet_network.pt"
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_dir', default=os.path.join(default_dir, 'train'))
 parser.add_argument('--val_dir', default=os.path.join(default_dir, 'val'))
-parser.add_argument('--batch_size', default=32, type=int)
+parser.add_argument('--batch_size', default=512, type=int)
 parser.add_argument('--num_workers', default=4, type=int)
 parser.add_argument('--num_epochs1', default=10, type=int)
-parser.add_argument('--num_epochs2', default=20000, type=int)
+parser.add_argument('--num_epochs2', default=30000, type=int)
 parser.add_argument('--use_gpu', default='use_gpu', action='store_true')
 parser.add_argument('--online_hard_triplet_loss', default=True)
 parser.add_argument('--save_dir_trained_model', default=trained_dir)
