@@ -35,12 +35,12 @@ import torchvision.transforms as T
 from torchvision.models.resnet import resnet18, resnet50
 from torchvision.datasets import ImageFolder
 import hard_triplet_loss as hd_t_loss
-
+import torchvision.models.vgg as vgg
 
 # default_dir="/mnt/sdb2/repo/daewon/cocotinydataset/coco-animals"
 default_dir="/mnt/sdb2/repo/daewon/deep_fashion_class_20_100_train_val"
 # trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network"
-trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network/19_01_24/"
+trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network/19_01_31/"
 name_pretrained_model = "_triplet_network.pt"
 
 
@@ -94,14 +94,22 @@ def main(args):
 
     # First load the pretrained ResNet-18 model; this will download the model
     # weights from the web the first time you run it
-    model = resnet50(pretrained=True)
-
+    # model = resnet50(pretrained=True)
+    # model = vgg.vgg16(pretrained=True)
+    model = vgg.vgg11(pretrained=False)
 
     # Reinitialize the last layer of the model.
     # Each pretrained model has a slightly different structure, but from the Resnet class definition
     # we see that the final fully-connected layer is stored in model.fc:
     num_classes = len(train_dset.classes)
-    model.fc = nn.Linear(model.fc.in_features, num_classes).cuda()
+
+    vgg_is = 1
+
+    if vgg_is == 0:
+        model.fc = nn.Linear(model.fc.in_features, num_classes).cuda()
+    else:
+        model.classifier[-1] = nn.Linear(25088, num_classes).cuda()
+
 
     # Cast the model to the correct datatype, and create a loss function fro training the model
     model.type(dtype)
@@ -113,12 +121,30 @@ def main(args):
     # all model parameters, then set the requires_grad=True for the parameters in the
     # last layer only.
     for param in model.parameters():
-        param.requires_grad =  False
-    for param in model.fc.parameters():
         param.requires_grad = True
 
-    # Construct an Optimizer object for updating the last layer only.
-    optimizer = torch.optim.Adam(model.fc.parameters(), lr=1e-5)
+    # ct = 0
+    # for name, child in resnet50.named_children():
+    #     ct += 1
+    #     if ct < 7:
+    #         for name2, params in child.named_parameters():
+    #             params.requires_grad = False
+
+    if vgg_is == 0:
+        for param in model.fc.parameters():
+            param.requires_grad = True
+    else:
+        for i in range(len(model.classifier)):
+            for param in model.classifier[i].parameters():
+                param.requires_grad = True
+
+    if vgg_is == 0:
+        # Construct an Optimizer object for updating the last layer only.
+        optimizer = torch.optim.Adam(model.fc.parameters(), lr=1e-5)
+    else:
+        optimizer = torch.optim.Adam(model.classifier.parameters(), lr=1e-5)
+
+
 
     # Train the entire model for a few more epochs, checking accuracy on the
     # train and validation sets after each epoch.
