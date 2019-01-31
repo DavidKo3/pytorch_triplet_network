@@ -142,7 +142,6 @@ def main(args):
     elif vgg_is == 1:
         optimizer = torch.optim.Adam(model.classifier.parameters(), lr=1e-5)
     else:
-
         optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
 
 
