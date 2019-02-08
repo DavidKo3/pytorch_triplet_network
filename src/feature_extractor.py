@@ -67,7 +67,7 @@ from PIL import Image
 # default_dir="/mnt/sdb2/repo/daewon/cocotinydataset/coco-animals"
 default_dir="/mnt/sdb2/repo/daewon/deep_fashion_class_20_100_train_val"
 # trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network"
-trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network/19_01_23/"
+trained_dir = "/mnt/sdb2/repo/daewon/pytorch_pretrained_model/triplet_network/19_01_31/"
 name_pretrained_model = "_triplet_network.pt"
 
 
@@ -123,7 +123,7 @@ def elewise_str_concat(path, files):
 
     return [os.path.join(path, file_name) for file_name in files]
 
-def encode_name_lable(root_dir):
+def encode_name_label(root_dir):
     data_dir = root_dir
     lable_range = 0
 
@@ -206,6 +206,9 @@ def main(args):
     # weights from the web the first time you run it
     model = resnet50(pretrained=True)
 
+    for param in model.parameters():
+        param.requires_grad = False
+
 
     # Reinitialize the last layer of the model.
     # Each pretrained model has a slightly different structure, but from the Resnet class definition
@@ -216,7 +219,7 @@ def main(args):
     # Cast the model to the correct datatype, and create a loss function fro training the model
     model.type(dtype)
 
-    check_point = torch.load(args.save_dir_trained_model + "19600" + name_pretrained_model)
+    check_point = torch.load(args.save_dir_trained_model + "29600" + name_pretrained_model)
     # check_point = torch.load(args.save_dir_trained_model + "1200" + name_pretrained_model)
     args.num_epoch1 = check_point['epoch']
 
@@ -224,33 +227,41 @@ def main(args):
 
     loss = check_point["loss"]
 
+
+
+    model = nn.Sequential(*list(model.children())[:-1])
+
     # print(args.num_epoch1)
     # print(loss)
     #
-    # for (i, param) in enumerate(model.named_children()):
-    #     print(i, param)
-    #
-    #
-    #
-    # print("val_dset[0][0].unsqueezeu(0).size() :", val_dset[0][0].unsqueeze(0).size())
-    # # adding one dimension to a tensor in pytorch
-    # data = val_dset[0][0].unsqueeze(0) # [3, 224, 224] -> [1, 3, 224, 224]
-    # print(type(data))
+    for (i, param) in enumerate(model.named_children()):
+        print(i, param)
 
-    # embedding = model(data)
-    # print("embedding.shape :", embedding.shape) # [1, 20]
+
+    #
+
+
+
+    print("val_dset[0][0].unsqueezeu(0).size() :", val_dset[0][0].unsqueeze(0).size())
+    # adding one dimension to a tensor in pytorch
+    data = val_dset[0][0].unsqueeze(0) # [3, 224, 224] -> [1, 3, 224, 224]
+    print(type(data))
+
+    embedding = model(data)
+    print("embedding.shape :", embedding.shape) # [1, 20]
     # feature = model.avgpool(data)
-    # # print("emb.size(0)", emb.size()) # [1, 3, 218, 218]
-    # emb = feature.view(feature.size(0), -1) # [1, 142572]
-    # print("emb.shape :", emb.shape)
+    feature = embedding
+    # print("emb.size(0)", emb.size()) # [1, 3, 218, 218]
+    emb = feature.view(feature.size(0), -1) # [1, 142572]
+    print("emb.shape :", emb.shape)
 
 
 
 
 
-    # data_dir = "./deep_fashion_class_46" # class-wise folder
+    data_dir = "./deep_fashion_class_46" # class-wise folder
     data_dir = "./deep_fashion_class_20_100"  # class-wise folder
-    result_dict, result_dict_2, label_int_list, result_dict_3 = encode_name_lable(data_dir)
+    result_dict, result_dict_2, label_int_list, result_dict_3 = encode_name_label(data_dir)
 
     """
     result_dict : [file_name, label(integer)]
@@ -297,7 +308,7 @@ def main(args):
             # print(file)
             data = Image.open(file)
             data = data.resize((224, 224))
-            data =  np.asarray(data).transpose(2,0,1)
+            data = np.asarray(data).transpose(2, 0, 1)
             # print(data.shape)
             data = data.astype(np.uint8)
             # adding one dimension to a tensor in pytorch
@@ -305,15 +316,26 @@ def main(args):
             # print(data.shape)
             data = torch.from_numpy(data)
             # print(type(data))
-            data = data.type('torch.DoubleTensor')
+            data = data.type('torch.FloatTensor')
             # embedding = model(data)
             # print("embedding.shape :", embedding.shape) # [1, 20]
-            feature = model.avgpool(data)
+            feature = model(data)
+
+
             # print("emb.size(0)", emb.size()) # [1, 3, 218, 218]
             emb = feature.view(feature.size(0), -1)  # [1, 142572]
-            emb = emb.numpy()
+
+            # nomalization of feature embedding
+            norm = emb.norm(p=2, dim=1, keepdim=True)
+            normed_emb = emb.div(norm)
+
+            # print("before normalization emb : ", emb)
+            # print("after normalization emb : ", normed_emb)
+            # print("norm :", norm)
+
+            normed_emb = normed_emb.detach().numpy()
             # print("emb.shape ", emb.shape)
-            img_list.append(emb)
+            img_list.append(normed_emb)
         print("---------- save pickle file ----------")
         with gzip.open(pick_file, "wb") as f:
             pickle.dump(img_list, f)
@@ -331,7 +353,7 @@ def main(args):
 
 
     print("len of img_list :", len(img_list))
-    print("img_list[0].shape : ", img_list[0])
+    print("img_list[0].shape : ", img_list[2])
     np_img_list = np.array(img_list)  # (2000, 1, 128)
     print("np_img_list", np_img_list.shape)
     np_img_reduced = np.squeeze(np_img_list, axis=1)  # (2000, 128)
@@ -382,7 +404,7 @@ def main(args):
     # plt.legend(loc='best')
     plt.show()
 
-    fig.savefig("tsne-unsupervised_20_class.png")
+    fig.savefig("tsne-pca-unsupervised_20_class.png")
 
 
 
